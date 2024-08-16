@@ -4,15 +4,6 @@ const { generateToken } = require("../utils/common_utils");
 
 const saltRounds = 10;
 
-const getUsers = async (req, res) => {
-  try {
-    x = await User.find();
-    res.json({ x });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
 const postUsers = async (req, res) => {
   try {
     const body = req.body;
@@ -33,10 +24,15 @@ const authUser = async (req, res) => {
     user_doc = await User.find({ email: body.email });
     user_hash = user_doc[0]["password"];
     if (await bcrypt.compare(body.password, user_hash)) {
-      jwt_token = await generateToken(user_doc);
-      console.log(jwt_token);
-      res.setHeader("x-jwt", jwt_token);
-      res.json("User Successfully Authenticated");
+      jwt_token = await generateToken(user_doc[0]);
+      res.cookie("token", jwt_token, {
+        sameSite: "None",
+        secure: true,
+        httpOnly: false,
+      });
+      res.json({
+        Message: "User Successfully Authenticated",
+      });
     } else {
       res.status(401).json("Wrong Password!");
     }
@@ -45,4 +41,4 @@ const authUser = async (req, res) => {
   }
 };
 
-module.exports = { getUsers, postUsers, authUser };
+module.exports = { postUsers, authUser };

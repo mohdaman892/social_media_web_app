@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
+
 dotenv.config();
 
 const secretKey = process.env.JWT_SECRET;
@@ -18,7 +19,7 @@ async function generateToken(user) {
 }
 
 async function authenticateJWT(req, res, next) {
-  const authHeader = req.headers["x-jwt"];
+  const authHeader = req.cookies.token;
 
   if (authHeader) {
     const token = authHeader;
@@ -36,4 +37,14 @@ async function authenticateJWT(req, res, next) {
   }
 }
 
-module.exports = { generateToken, authenticateJWT };
+async function decodeToken(req) {
+  const token = req.cookies.token;
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    return decoded["id"];
+  } catch (err) {
+    console.error("Invalid token", err);
+  }
+}
+
+module.exports = { generateToken, authenticateJWT, decodeToken };
